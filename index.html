@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Speed Reader</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap');
+    
+    body {
+      font-family: 'Merriweather', serif;
+      background-color: #f8f3e7;
+      color: #4a3f35;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-image: url('https://www.transparenttextures.com/patterns/old-wall.png');
+    }
+    .container {
+      max-width: 800px;
+      width: 100%;
+      padding: 30px;
+      background-color: #fffaf3;
+      box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+      border-radius: 15px;
+      border: 1px solid #e1dac5;
+    }
+    h1 {
+      font-size: 2.5rem;
+      text-align: center;
+      color: #8b4513;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #8b4513;
+      padding-bottom: 10px;
+    }
+    .textarea-container {
+      margin-bottom: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      border: 2px solid #d1c7b7;
+      border-radius: 10px;
+      padding: 15px;
+      font-family: inherit;
+      font-size: 1rem;
+      line-height: 1.6;
+      resize: none;
+      box-sizing: border-box;
+      background-color: #f5f0e7;
+      color: #4a3f35;
+    }
+    .settings {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .settings label {
+      font-size: 1.1rem;
+      margin-right: 10px;
+      color: #4a3f35;
+    }
+    .settings input[type="number"] {
+      width: 60px;
+      padding: 5px;
+      font-size: 1rem;
+      border: 2px solid #d1c7b7;
+      border-radius: 5px;
+      background-color: #f5f0e7;
+      color: #4a3f35;
+    }
+    .time-display {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #6d5c5c;
+    }
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .button {
+      background-color: #8b4513;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.1s;
+    }
+    .button:hover {
+      background-color: #70410f;
+    }
+    .button:active {
+      transform: scale(0.95);
+    }
+    .word-display {
+      font-size: 2.5rem;
+      font-weight: bold;
+      padding: 20px;
+      background-color: #f5f0e7;
+      border-radius: 10px;
+      text-align: center;
+      margin: 0 20px;
+      flex: 1;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      color: #4a3f35;
+      border: 2px solid #d1c7b7;
+    }
+    .all-words {
+      width: 100%;
+      height: 300px;
+      border: 2px solid #d1c7b7;
+      border-radius: 10px;
+      overflow-y: auto;
+      padding: 20px;
+      font-family: inherit;
+      white-space: pre-wrap;
+      box-sizing: border-box;
+      font-size: 1.2rem;
+      background-color: #f5f0e7;
+      color: #4a3f35;
+    }
+    .highlight {
+      color: #b22222;
+      font-weight: bold;
+      background-color: #ffe4e1;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+    .full-screen, .all-words-fullscreen {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 250, 243, 0.95);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .full-screen.active, .all-words-fullscreen.active {
+      display: flex;
+    }
+    .full-screen .word-display, .all-words-fullscreen-content {
+      font-size: 1.5rem;
+      padding: 40px;
+      background-color: #fffaf3;
+      border: none;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      max-width: 90%;
+      max-height: 90%;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      border: 2px solid #d1c7b7;
+    }
+    .full-screen .word-display {
+      font-size: 5rem;
+    }
+    .exit-full-screen, .exit-all-words-fullscreen {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: #b22222;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .exit-full-screen:hover, .exit-all-words-fullscreen:hover {
+      background-color: #8b1a1a;
+    }
+    .full-screen-time {
+      position: absolute;
+      bottom: 20px;
+      font-size: 1.1rem;
+      color: #4a3f35;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Speed Reader</h1>
+    <div class="textarea-container">
+      <textarea id="textInput" placeholder="Enter your text here"></textarea>
+    </div>
+    <div class="settings">
+      <div>
+        <label for="wpm">Words Per Minute:</label>
+        <input type="number" id="wpm" value="200" oninput="calculateEstimatedTime()" />
+      </div>
+      <button class="button" onclick="startReading()">Start Reading</button>
+    </div>
+    <div class="time-display" id="estimatedTime"></div>
+    <div class="controls">
+      <button class="button" onmousedown="startPrev()" onmouseup="stopAuto()">&#8592; Previous</button>
+      <div class="word-display" id="currentWord">Current Word</div>
+      <button class="button" onmousedown="startNext()" onmouseup="stopAuto()">Next &#8594;</button>
+    </div>
+    <div class="controls">
+      <button class="button" onclick="toggleFullScreen()">Toggle Full Screen</button>
+      <button class="button" onclick="toggleAllWordsFullScreen()">View All Words Full Screen</button>
+      <button class="button" onclick="toggleAutoAdvance()">Toggle Auto</button>
+    </div>
+    <div class="all-words" id="allWords"></div>
+    <div class="full-screen" id="fullScreenWord">
+      <div class="word-display" id="fullScreenText">Current Word</div>
+      <button class="exit-full-screen" onclick="exitFullScreen()">Exit Full Screen</button>
+      <div class="full-screen-time" id="fullScreenTime"></div>
+    </div>
+    <div class="all-words-fullscreen" id="allWordsFullScreen">
+      <div class="all-words-fullscreen-content" id="allWordsFullScreenContent"></div>
+      <button class="exit-all-words-fullscreen" onclick="exitAllWordsFullScreen()">Exit Full Screen</button>
+      <div class="full-screen-time" id="fullScreenAllWordsTime"></div>
+    </div>
+  </div>
+
+  <script>
+    let words = [];
+    let currentWordIndex = 0;
+    let autoNextInterval = null;
+    let lastKeyPressTime = 0;
+    let keyPressInterval = 0;
+    let totalReadingTime = 0;
+    let autoAdvance = false;
+
+    function startReading() {
+      const text = document.getElementById('textInput').value;
+      words = text.split(/(\s+)/); // Split by spaces but keep them in the array
+      displayAllWords();
+      highlightCurrentWord();
+      updateEstimatedTimeRemaining();
+    }
+
+    function displayAllWords() {
+      const allWordsDiv = document.getElementById('allWords');
+      allWordsDiv.innerHTML = words.map((word, index) => {
+        return `<span id="word-${index}" onclick="setCurrentWord(${index})">${word}</span>`;
+      }).join('');
+    }
+
+    function setCurrentWord(index) {
+      if (words[index].trim() === '') {
+        return;
+      }
+      currentWordIndex = index;
+      highlightCurrentWord();
+      updateEstimatedTimeRemaining();
+    }
+
+    function highlightCurrentWord() {
+      document.querySelectorAll('.all-words span').forEach((span) => {
+        span.classList.remove('highlight');
+      });
+      if (words.length > 0 && words[currentWordIndex].trim() !== '') {
+        const currentSpan = document.getElementById(`word-${currentWordIndex}`);
+        currentSpan.classList.add('highlight');
+        currentSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document.getElementById('currentWord').innerText = words[currentWordIndex].trim();
+        document.getElementById('fullScreenText').innerText = words[currentWordIndex].trim();
+      }
+    }
+
+    function nextWord() {
+      do {
+        currentWordIndex++;
+      } while (currentWordIndex < words.length && words[currentWordIndex].trim() === '');
+      highlightCurrentWord();
+      updateEstimatedTimeRemaining();
+    }
+
+    function prevWord() {
+      do {
+        currentWordIndex--;
+      } while (currentWordIndex > 0 && words[currentWordIndex].trim() === '');
+      highlightCurrentWord();
+      updateEstimatedTimeRemaining();
+    }
+
+    function startNext() {
+      nextWord();
+      const wpm = parseInt(document.getElementById('wpm').value, 10);
+      const interval = (60 / wpm) * 1000;
+      autoNextInterval = setInterval(nextWord, interval);
+    }
+
+    function startPrev() {
+      prevWord();
+      const wpm = parseInt(document.getElementById('wpm').value, 10);
+      const interval = (60 / wpm) * 1000;
+      autoNextInterval = setInterval(prevWord, interval);
+    }
+
+    function stopAuto() {
+      clearInterval(autoNextInterval);
+    }
+
+    function calculateEstimatedTime() {
+      const text = document.getElementById('textInput').value;
+      const wpm = parseInt(document.getElementById('wpm').value, 10);
+      const wordCount = text.split(/\s+/).filter(word => word.trim() !== '').length;
+      totalReadingTime = (wordCount / wpm) * 60; // total time in seconds
+
+      // Display estimated time in minutes and seconds
+      const minutes = Math.floor(totalReadingTime / 60);
+      const seconds = Math.floor(totalReadingTime % 60);
+      document.getElementById('estimatedTime').innerText = `Estimated Time: ${minutes} minutes ${seconds} seconds`;
+    }
+
+    function updateEstimatedTimeRemaining() {
+      const wpm = parseInt(document.getElementById('wpm').value, 10);
+      const wordsRead = currentWordIndex;
+      const wordsRemaining = words.length - wordsRead;
+      const timeRemaining = (wordsRemaining / wpm) * 60; // remaining time in seconds
+
+      // Display remaining time in minutes and seconds
+      const minutes = Math.floor(timeRemaining / 60);
+      const seconds = Math.floor(timeRemaining % 60);
+      document.getElementById('estimatedTime').innerText = `Time Remaining: ${minutes} minutes ${seconds} seconds`;
+
+      // Update time in full-screen mode
+      document.getElementById('fullScreenTime').innerText = `Time Remaining: ${minutes} minutes ${seconds} seconds`;
+      document.getElementById('fullScreenAllWordsTime').innerText = `Time Remaining: ${minutes} minutes ${seconds} seconds`;
+    }
+
+    function toggleFullScreen() {
+      const fullScreenDiv = document.getElementById('fullScreenWord');
+      fullScreenDiv.classList.toggle('active');
+    }
+
+    function exitFullScreen() {
+      const fullScreenDiv = document.getElementById('fullScreenWord');
+      fullScreenDiv.classList.remove('active');
+    }
+
+    function toggleAllWordsFullScreen() {
+      const allWordsFullScreenDiv = document.getElementById('allWordsFullScreen');
+      const allWordsFullScreenContent = document.getElementById('allWordsFullScreenContent');
+      allWordsFullScreenContent.innerHTML = document.getElementById('allWords').innerHTML; // Copy the content
+      allWordsFullScreenDiv.classList.toggle('active');
+    }
+
+    function exitAllWordsFullScreen() {
+      const allWordsFullScreenDiv = document.getElementById('allWordsFullScreen');
+      allWordsFullScreenDiv.classList.remove('active');
+    }
+
+    function toggleAutoAdvance() {
+      if (autoAdvance) {
+        stopAuto();
+      } else {
+        startAutoAdvance();
+      }
+      autoAdvance = !autoAdvance;
+    }
+
+    function startAutoAdvance() {
+      const wpm = parseInt(document.getElementById('wpm').value, 10);
+      const interval = (60 / wpm) * 1000;
+      autoNextInterval = setInterval(nextWord, interval);
+    }
+
+    function handleArrowKeys(event) {
+      if (event.key === ' ') {
+        toggleAutoAdvance();
+        event.preventDefault(); // Prevent default spacebar behavior
+      } else if (event.key === 'ArrowRight') {
+        nextWord();
+      } else if (event.key === 'ArrowLeft') {
+        prevWord();
+      }
+    }
+
+    document.addEventListener('mouseup', stopAuto); // Ensure stopAuto is called on mouseup anywhere
+    document.addEventListener('keydown', handleArrowKeys);
+    window.addEventListener('load', calculateEstimatedTime); // Calculate time on page load
+  </script>
+</body>
+</html>
